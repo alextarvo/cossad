@@ -190,7 +190,7 @@ docker run --rm --gpus all nvidia/cuda:12.4.1-base-ubuntu22.04 nvidia-smi
 
 ## License
 
-See [LICENSE](LICENSE).
+This work is licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). See [LICENSE](LICENSE) for the full text. Commercial use is not permitted.
 
 ## Contact
 
