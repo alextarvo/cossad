@@ -1,0 +1,113 @@
+# This is a current configuration file, used to train COSSAD encoder
+# v. 0.3, 2026/01
+# This is a base file, and we expect that the user will overwrite some entries from the command line,
+# e.g. those that are related by the current experiment, model output etc.
+
+
+experiment:
+  # The base name of the run, as it will be saved to Weights and Biases (WanDB)
+  run_name: riconv2
+  # Pipeline run ID. null = fall back to per-invocation timestamp (manual runs).
+  # Set by DVC pipeline as: experiment.run_id=${pipeline.weights_run_id}
+  run_id: null
+  # Controls logging to WanDb. Set to False if you don't have Wandb account.
+  use_wandb: True
+  # WanDB experiment tags; empty by default.
+  tags: []
+  # Only for debug / investigation purposes
+  copy_negatives: 0
+  single_batch: 1
+
+paths:
+  # path where the model weights will be saved to.
+  # DVC overrides this to /data/model_weights; "manual" sentinel = non-DVC run.
+  model_output_path: /data/model_weights
+  # Path where Tensorboard model logs will be saved to.
+  logs_output_path: /data/model_logs
+
+data:
+  # The path to the input training data. Please note that
+  # COSSAD expects that the actual data is located in a folder
+  # {patches_path}_{dataset name}_{rotation}, e.g. "supcon_train_r2_2025_11_04_real3dad_norot"
+  patches_path: /data/supcon_train_r2_2025_11_04
+  # Each patch will be re-sampled to the given number of points for training and inference
+  points_per_patch: 512
+  # The number of patches included into the contrastive tuple
+  # For FA tuples;  + 1 anchor
+  max_good_per_negative_anchor: 3
+  # For WA tuples. no anchors here, miner will add patches from FA tuples
+  max_good_per_positive_anchor: 2
+  # The dataset to train
+  dataset: [shapenet,real3dad]
+  split: train_classes_all  # optional. can be missing or set to null
+  # [Deprecated] Denotes, if the input point clouds were randomly rotated during the training set construction.
+  rotation: norot   # {norot, rot}
+  # [Deprecated]. The way how patches are zero-centered in a tuple. Do not modify.
+  centering: separate #{template, common, separate}
+
+model:
+  # The backbone identifier. Currently only "riconv2" is supported, which denotes RICOnv++
+  name: riconv2
+  # Feature dimensions
+  embedding_dim: 64
+  # Enable/disable dropout for the contrastive head.
+  use_dropout: True
+
+training:
+  # Batch composition for 5090 local training
+  # The number of WA tuples in the batch.
+  all_pos_batch_size: 100
+  # The number of FA tuples in the batch
+  neg_batch_size: 40
+
+  # For Lambda training on A100 80 Gb GPU
+#  all_pos_batch_size: 250
+#  neg_batch_size: 100
+
+  # Training epochs
+  epochs: 120
+  # Learning rate
+  lr: 1e-3
+  # L2 regularization factor for training
+  weight_decay: 1e-5
+  # Stops training, if the network doesn't improve after this given number of epochs.
+  early_stop_tolerance: 50
+
+loss:
+  # Margin for the Multi similarity (MS) loss function
+  triplet_loss_margin: 0.6
+  # Alpha and beta parameters for MS loss of WA tuples
+  mined_alpha: 10
+  mined_beta: 10
+  # Alpha and beta parameters for MS loss of FA tuples
+  forced_alpha: 3
+  forced_beta: 30
+  # Enables / disables automatic loss weighting through GradNormalization.
+  # If enabled, FA and WA loss weights will be initialized from fa_loss_weight and wa_loss_weight (see below);
+  # they will be updated to maintain the equality of gradient magnitudes throughout the training
+  # If disabled, FA and WA loss weights will be not changed during the training process.
+  use_grad_norm: False
+  # An initial weight of the FA loss.
+  fa_loss_weight: 1
+  # An initial weight of the WA loss
+  wa_loss_weight: 0
+  # Type of a loss function for WA tuples.
+  # MS denotes Multi-Similarity loss; SupCon - supervised contrastive loss
+  wa_loss_type: 'MS'
+  # Temperature for SupCon loss, if SupCon is specified
+  wa_loss_temperature: 0.1
+
+triplet_mining:
+  # Miner type.
+  # "Simple" miner represents an approach outlined in the ICPR paper
+  # For now, all miners except "Simple" are purely experimental and should not be used.
+  miner: Simple
+  # Not used currently.
+  crit_yield: 0.5
+  mining_momentum: 0.99
+  num_to_mine: 1
+#  update_embeddings_every_batches: 10
+
+ddp:
+  # The number of GPUs in the system. Not used for v 0.3
+  world_size: 2

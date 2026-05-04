@@ -1,0 +1,88 @@
+# COSSAD Docker Compose
+#
+# REQUIRES: Docker Engine 23.0+ with Compose V2
+# See docker/README.md for installation instructions.
+#
+# HOST_UID/HOST_GID Environment Variables
+# ---------------------------------------
+# The container runs as a non-root user for security and proper file ownership.
+# HOST_UID and HOST_GID environment variables tell the container which user/group IDs to use.
+#
+# Why this matters:
+#   - The /app directory is mounted from your host machine
+#   - Without matching UID/GID, files created in the container would be owned by
+#     a different user (UID 1000 by default), causing permission issues on the host
+#   - By passing your host UID/GID, files created in the container are owned by you
+#
+# If HOST_UID/HOST_GID are not set, the container defaults to UID=1000 and GID=1000.
+# If your host user happens to have UID 1000 (common on single-user systems),
+# you can omit them. Check your UID with: id -u
+#
+# Usage:
+#   # Run interactive shell:
+#   HOST_UID=$(id -u) HOST_GID=$(id -g) docker compose -f docker/docker-compose.yml run --rm cossad-cu124 bash
+#
+#   # Run pipeline:
+#   HOST_UID=$(id -u) HOST_GID=$(id -g) docker compose -f docker/docker-compose.yml run --rm cossad-cu124 \
+#       python pipeline_reg_based.py --cossad_data_path=/data ...
+#
+#   # With debugger (PyCharm on port 5678):
+#   HOST_UID=$(id -u) HOST_GID=$(id -g) COSSAD_DEBUG=1 docker compose -f docker/docker-compose.yml run --rm cossad-cu124 \
+#       python your_script.py
+#
+# Tip: Add to ~/.bashrc to avoid typing HOST_UID/HOST_GID each time:
+#   export HOST_UID=$(id -u)
+#   export HOST_GID=$(id -g)
+
+
+# Shared configuration (YAML anchor)
+x-cossad-common: &cossad-common
+  volumes:
+    - /mnt/data/cossad:/data
+    - ..:/app
+  ports:
+    - "5678:5678"
+    - "6006:6006"
+  environment:
+    - NVIDIA_VISIBLE_DEVICES=all
+    - COSSAD_DEBUG=${COSSAD_DEBUG:-0}
+    - HOST_UID=${HOST_UID:-1000}
+    - HOST_GID=${HOST_GID:-1000}
+  deploy:
+    resources:
+      reservations:
+        devices:
+          - driver: nvidia
+            count: all
+            capabilities: [gpu]
+  shm_size: '16gb'
+  stdin_open: true
+  tty: true
+
+services:
+  cossad-cu124:
+    <<: *cossad-common
+    image: cossad:cu124
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      args:
+        CUDA_VERSION: "12.4.1"
+        TORCH_VERSION: "2.5.*"
+        CUDA_SUFFIX: "cu124"
+        PYG_TORCH_VERSION: "2.5.0"
+        CUDA_ARCH_LIST: "7.5;8.0;8.6;8.9;9.0"
+
+  cossad-cu128:
+    <<: *cossad-common
+    image: cossad:cu128
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      args:
+        CUDA_VERSION: "12.8.0"
+        TORCH_VERSION: "2.8.*"
+        CUDA_SUFFIX: "cu128"
+        PYG_TORCH_VERSION: "2.8.0"
+        CUDA_ARCH_LIST: "8.6;8.9;9.0;10.0;12.0+PTX"
+

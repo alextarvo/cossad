@@ -1,0 +1,47 @@
+# COSSAD Base Environment
+# Common dependencies shared by all CUDA variants
+# Does NOT include PyTorch or CUDA-specific packages
+name: cossad
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+
+  # Core scientific stack
+  - numpy
+  - scipy
+  - pandas
+  - scikit-image>=0.25
+  - pillow>=10.1
+  - scikit-learn
+  - matplotlib
+
+  # Configuration
+  - omegaconf
+  - hydra-core>=1.2
+  - hydra-joblib-launcher
+  - pyyaml
+  - einops
+
+  # Visualization / tools
+  - open3d
+  - opencv
+  - plotly
+  - dash
+  - tensorboard
+  - pingouin
+  - pyquaternion
+  - tqdm
+  - wandb
+  - h5py
+  - faiss-cpu
+
+  # Version control
+  - git
+  - dvc
+
+  # Testing / debugging
+  - pytest
+  - debugpy
+  - ipython
