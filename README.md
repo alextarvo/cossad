@@ -78,13 +78,13 @@ Download and extract to your data directory (e.g. `/mnt/data/cossad`):
 mkdir -p /mnt/data/cossad && cd /mnt/data/cossad
 
 # Inference data (required)
-curl -O https://pub-c3e1c2ecdbd44fc6bf5a8c091a3c3536.r2.dev/template.tar
-curl -O https://pub-c3e1c2ecdbd44fc6bf5a8c091a3c3536.r2.dev/train.tar
+curl -C - -O https://pub-c3e1c2ecdbd44fc6bf5a8c091a3c3536.r2.dev/template.tar
+curl -C - -O https://pub-c3e1c2ecdbd44fc6bf5a8c091a3c3536.r2.dev/train.tar
 tar -xf template.tar && tar -xf train.tar
 
 # Training data (required for training from scratch)
-curl -O https://pub-c3e1c2ecdbd44fc6bf5a8c091a3c3536.r2.dev/supcon_train_r2_2025_11_04_real3dad_norot.tar
-curl -O https://pub-c3e1c2ecdbd44fc6bf5a8c091a3c3536.r2.dev/supcon_train_r2_2025_11_04_shapenet_norot.tar
+curl -C - -O https://pub-c3e1c2ecdbd44fc6bf5a8c091a3c3536.r2.dev/supcon_train_r2_2025_11_04_real3dad_norot.tar
+curl -C - -O https://pub-c3e1c2ecdbd44fc6bf5a8c091a3c3536.r2.dev/supcon_train_r2_2025_11_04_shapenet_norot.tar
 tar -xf supcon_train_r2_2025_11_04_real3dad_norot.tar
 tar -xf supcon_train_r2_2025_11_04_shapenet_norot.tar
 ```

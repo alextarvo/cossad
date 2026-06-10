@@ -37,8 +37,8 @@ Download and extract these files to your data directory (e.g., `/mnt/data/cossad
 
 ```bash
 cd /mnt/data/cossad/data
-curl -O https://pub-c3e1c2ecdbd44fc6bf5a8c091a3c3536.r2.dev/template.tar
-curl -O https://pub-c3e1c2ecdbd44fc6bf5a8c091a3c3536.r2.dev/train.tar
+curl -C - -O https://pub-c3e1c2ecdbd44fc6bf5a8c091a3c3536.r2.dev/template.tar
+curl -C - -O https://pub-c3e1c2ecdbd44fc6bf5a8c091a3c3536.r2.dev/train.tar
 tar -xf template.tar
 tar -xf train.tar
 ```
@@ -59,11 +59,16 @@ volumes:
   - /mnt/data/cossad/model_weights:/weights    # Pre-trained model weights
 ```
 
+Below, for the purpose of this document, we assume that your data files were extracted into the `/mnt/data/cossad/data/`.
+
 
 
 ### 3. Copy Pre-trained Weights
 
-Copy the pre-trained weights from the ./weights in the repository folder to your destination weights folder, `/mnt/data/cossad/model_weights/`.
+Copy the pre-trained weights from the ./weights in the repository folder to your destination weights folder, e.g. `/mnt/data/cossad/model_weights/baseline`. 
+Make sure the weights are copied into a 'baseline' subfolder, as it corresponds to the run ID that will be supplied to our run_train_eval_pipeline.py 
+pipeline script (see below). 
+
 The directory must follow this structure:
 
 ```
@@ -123,7 +128,15 @@ assess statistical significance of the results.
 
 Results are saved to `/data/predictions/<EVAL_RUN_ID>/stats/all.csv` inside the container,
 where `<EVAL_RUN_ID>` is printed at the start of the run (format: `Eval_YYYYMMDD_HHMMSS`).
-The CSV contains O-ROCAUC and P-ROCAUC metrics aggregated across all object classes.
+The key columns in `all.csv` are:
+
+- `class_name` — object class (e.g., `airplane`, `starfish`)
+- `O-ROCAUC` — object-level detection accuracy (area under ROC curve)
+- `P-ROCAUC` — point-level localization accuracy (area under ROC curve)
+- `mean_inference_time` — average inference time per object (seconds)
+
+The file contains one row per object class per attempt. With `--attempts 5`, each class
+will have 5 rows, reflecting the stochastic variation across independent inference runs.
 
 Evaluation is described in the [Evaluation](evaluation.md) section of the documentation in more detail.
 
@@ -134,8 +147,8 @@ Evaluation is described in the [Evaluation](evaluation.md) section of the docume
 Additionally, before starting the container, download the training data:
 ```bash
 cd /mnt/data/cossad/data
-curl -O https://pub-c3e1c2ecdbd44fc6bf5a8c091a3c3536.r2.dev/supcon_train_r2_2025_11_04_real3dad_norot.tar
-curl -O https://pub-c3e1c2ecdbd44fc6bf5a8c091a3c3536.r2.dev/supcon_train_r2_2025_11_04_shapenet_norot.tar
+curl -C - -O https://pub-c3e1c2ecdbd44fc6bf5a8c091a3c3536.r2.dev/supcon_train_r2_2025_11_04_real3dad_norot.tar
+curl -C - -O https://pub-c3e1c2ecdbd44fc6bf5a8c091a3c3536.r2.dev/supcon_train_r2_2025_11_04_shapenet_norot.tar
 tar -xf supcon_train_r2_2025_11_04_real3dad_norot.tar
 tar -xf supcon_train_r2_2025_11_04_shapenet_norot.tar
 ```
@@ -157,6 +170,12 @@ The runner generates and prints two run IDs at the start:
 
 Model weights are saved to `/weights/<TRAIN_RUN_ID>/train_classes_N/best_riconv2.pth` inside the
 container, which maps to `/mnt/data/cossad/model_weights/<TRAIN_RUN_ID>/` on the host.
+
+To train only (without evaluation), use the `train` command:
+
+```bash
+python scripts/run_train_eval_pipeline.py train --splits 1-12 --epochs 120
+```
 
 For a quick sanity check (2 splits, 10 epochs), use `smoke` instead of `full`:
 
@@ -241,6 +260,17 @@ This is cached for subsequent runs.
 ```bash
 export HOST_UID=$(id -u)
 export HOST_GID=$(id -g)
+```
+
+**Download interrupted:** Large files (especially the 66 GB ShapeNet training archive) may fail
+mid-download with `curl: (18) transfer closed with ... bytes remaining to read`. The `-C -` flag
+in the download commands enables automatic resume. Simply re-run the same `curl -C - -O ...` command
+and it will continue from where it left off. For unattended downloads, use a retry loop:
+```bash
+until curl -C - -O https://pub-c3e1c2ecdbd44fc6bf5a8c091a3c3536.r2.dev/supcon_train_r2_2025_11_04_shapenet_norot.tar; do
+    echo "Download interrupted, resuming in 5s..."
+    sleep 5
+done
 ```
 
 **GPU not detected:** Verify NVIDIA Container Toolkit is installed:

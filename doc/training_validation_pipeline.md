@@ -352,9 +352,9 @@ Review the exact commands that will be executed. Copy-paste any individual comma
 
 ```bash
 python scripts/run_train_eval_pipeline.py smoke \
-    --data-path ./data \
-    --weights-root ./data/model_weights \
-    --predictions-root ./data/predictions
+    --data-path /mnt/data/cossad \
+    --weights-root /mnt/data/cossad/model_weights \
+    --predictions-root /mnt/data/cossad/predictions
 ```
 
 ## Configurable constants

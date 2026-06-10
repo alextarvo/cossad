@@ -3,10 +3,11 @@
 Currently, COSSAD ingests data from three different datasets—Real3D-AD, MulSen, and Anomaly-ShapeNet v.2—and 
 converts them into a common format suitable for further processing. We call this the COSSAD dataset format.
 This data is used to generate the training set for training the contrastive feature extractor, as well as for inference.
-For this documentation, we assume that all data is located in the `./data` folder of the COSSAD
-source tree. You may store COSSAD data in a separate folder, and `./data` can be a symlink to that folder.  
+We assume that all data is stored in a dedicated directory on the host machine (e.g., `/mnt/data/cossad`).
+When running under Docker, this directory is mounted into the container at `/data`.
+When running locally, pass the path via `--cossad_data_path` or `--data-path` as appropriate.
 
-The contents of the `./data` folder:
+The contents of the data directory:
  - `template`: A folder containing point clouds (PCs) for reference template shapes. These are not used
     for training; they are used for inference and/or evaluation only. 
  - `train`: A folder containing PCs of objects that the COSSAD encoder will be trained on and evaluated on.
@@ -38,13 +39,10 @@ COSSAD pipelines expect file names in the following format: `<dataset name>_<obj
 e.g., `ashapenet_ashtray0_10001.npz`. Location IDs within (0, 10000) belong to WA patches, and IDs
 starting from 10000 are those of FA patches.
 
-Since COSSAD is under active development, naming conventions and file contents may change. We will
-do our best to keep this documentation up to date.
-
 # Ready-to-use dataset
 
-You can download our dataset from Cloudflare R2 storage. Download and extract the following files into your ./data
-directory:
+You can download our dataset from Cloudflare R2 storage. Download and extract the following files into your
+data directory (e.g., `/mnt/data/cossad`):
 - https://pub-c3e1c2ecdbd44fc6bf5a8c091a3c3536.r2.dev/template.tar
 - https://pub-c3e1c2ecdbd44fc6bf5a8c091a3c3536.r2.dev/train.tar
 - https://pub-c3e1c2ecdbd44fc6bf5a8c091a3c3536.r2.dev/supcon_train_r2_2025_11_04_real3dad_norot.tar
