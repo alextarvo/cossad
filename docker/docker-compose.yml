@@ -22,9 +22,9 @@
 #   # Run interactive shell:
 #   HOST_UID=$(id -u) HOST_GID=$(id -g) docker compose -f docker/docker-compose.yml run --rm cossad-cu124 bash
 #
-#   # Run pipeline:
+#   # Run evaluation with pre-trained weights:
 #   HOST_UID=$(id -u) HOST_GID=$(id -g) docker compose -f docker/docker-compose.yml run --rm cossad-cu124 \
-#       python pipeline_reg_based.py --cossad_data_path=/data ...
+#       python scripts/run_train_eval_pipeline.py eval --weights-run-id baseline --eval-dataset real3dad --splits 1-12
 #
 #   # With debugger (PyCharm on port 5678):
 #   HOST_UID=$(id -u) HOST_GID=$(id -g) COSSAD_DEBUG=1 docker compose -f docker/docker-compose.yml run --rm cossad-cu124 \
@@ -38,7 +38,8 @@
 # Shared configuration (YAML anchor)
 x-cossad-common: &cossad-common
   volumes:
-    - /mnt/data/cossad:/data
+    - /mnt/data/cosarad/data:/data
+    - /mnt/data/cosarad/model_weights:/weights
     - ..:/app
   ports:
     - "5678:5678"

@@ -1,4 +1,4 @@
-# COSARAD - Unified Dockerfile
+# COSSAD - Unified Dockerfile
 #
 # REQUIRES: Docker 23.0+ (BuildKit). See docker/README.md
 #
@@ -7,8 +7,8 @@
 #   cu128 - CUDA 12.8 + PyTorch 2.8 (Blackwell RTX 5090)
 #
 # Build via docker compose (recommended):
-#   docker compose -f docker/docker-compose.yml build cosarad-cu124
-#   docker compose -f docker/docker-compose.yml build cosarad-cu128
+#   docker compose -f docker/docker-compose.yml build cossad-cu124
+#   docker compose -f docker/docker-compose.yml build cossad-cu128
 
 # ---------------------------------------------------------------------------
 # Build arguments (REQUIRED - no defaults, must be passed via docker-compose.yml)
@@ -28,8 +28,8 @@ ARG CUDA_ARCH_LIST
 # Fail fast if required build args are missing
 RUN if [ -z "$TORCH_VERSION" ] || [ -z "$CUDA_SUFFIX" ] || [ -z "$PYG_TORCH_VERSION" ] || [ -z "$CUDA_ARCH_LIST" ]; then \
       echo "ERROR: Missing required build args. Use docker-compose.yml to build:" >&2; \
-      echo "  docker compose -f docker/docker-compose.yml build cosarad-cu124" >&2; \
-      echo "  docker compose -f docker/docker-compose.yml build cosarad-cu128" >&2; \
+      echo "  docker compose -f docker/docker-compose.yml build cossad-cu124" >&2; \
+      echo "  docker compose -f docker/docker-compose.yml build cossad-cu128" >&2; \
       exit 1; \
     fi
 
@@ -71,9 +71,9 @@ RUN micromamba create -y -f /tmp/environment.yml && \
 
 # Set up shell for interactive sessions
 RUN echo 'eval "$(micromamba shell hook -s bash)"' >> /root/.bashrc && \
-    echo 'micromamba activate cosarad' >> /root/.bashrc && \
+    echo 'micromamba activate cossad' >> /root/.bashrc && \
     echo 'eval "$(micromamba shell hook -s bash)"' >> /home/appuser/.bashrc && \
-    echo 'micromamba activate cosarad' >> /home/appuser/.bashrc
+    echo 'micromamba activate cossad' >> /home/appuser/.bashrc
 
 # ---------------------------------------------------------------------------
 # Environment variables
@@ -91,14 +91,14 @@ ENV TORCH_CUDA_ARCH_LIST=${CUDA_ARCH_LIST}
 # ---------------------------------------------------------------------------
 # Install PyTorch + CUDA
 # ---------------------------------------------------------------------------
-RUN micromamba run -n cosarad pip install --no-cache-dir \
+RUN micromamba run -n cossad pip install --no-cache-dir \
     torch==${TORCH_VERSION} \
     torchvision \
     torchaudio \
     --index-url https://download.pytorch.org/whl/${CUDA_SUFFIX}
 
 # Install torch-geometric and CUDA extensions
-RUN micromamba run -n cosarad pip install --no-cache-dir \
+RUN micromamba run -n cossad pip install --no-cache-dir \
     torch-geometric \
     pyg_lib \
     torch_scatter \
@@ -108,7 +108,7 @@ RUN micromamba run -n cosarad pip install --no-cache-dir \
     -f https://data.pyg.org/whl/torch-${PYG_TORCH_VERSION}+${CUDA_SUFFIX}.html
 
 # Install PyTorch-dependent packages
-RUN micromamba run -n cosarad pip install --no-cache-dir \
+RUN micromamba run -n cossad pip install --no-cache-dir \
     kornia \
     timm \
     torchinfo \
@@ -121,7 +121,7 @@ RUN micromamba run -n cosarad pip install --no-cache-dir \
 WORKDIR /app
 COPY . /app/
 
-VOLUME ["/data", "/app"]
+VOLUME ["/data", "/weights", "/app"]
 
 ENV POINTOPS_CACHE=/app/.cache/pointops
 
