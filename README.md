@@ -8,6 +8,8 @@ Reference implementation for the paper:
 > Alexander Tarvo, Colin Acton, Yusen Wan, Xu Chen
 > *ICPR 2026*
 
+**To reproduce the results reported in the ICPR'26 paper, see [Reproduction Guide](doc/REPRODUCTION_GUIDE.md).**
+
 COSSAD detects geometric defects — cracks, holes, bulges — in 3D point clouds of manufactured parts. It compares a test shape against a set of defect-free reference shapes using contrastive feature extraction and spatially-aware patch comparison.
 
 ## Key results
