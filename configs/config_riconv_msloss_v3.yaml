@@ -11,7 +11,7 @@ experiment:
   # Set by DVC pipeline as: experiment.run_id=${pipeline.weights_run_id}
   run_id: null
   # Controls logging to WanDb. Set to False if you don't have Wandb account.
-  use_wandb: True
+  use_wandb: False
   # WanDB experiment tags; empty by default.
   tags: []
   # Only for debug / investigation purposes
