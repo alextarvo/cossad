@@ -21,7 +21,7 @@ experiment:
 paths:
   # path where the model weights will be saved to.
   # DVC overrides this to /data/model_weights; "manual" sentinel = non-DVC run.
-  model_output_path: /data/model_weights
+  model_output_path: /weights
   # Path where Tensorboard model logs will be saved to.
   logs_output_path: /data/model_logs
 
