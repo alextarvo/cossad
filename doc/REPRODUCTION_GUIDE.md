@@ -138,6 +138,10 @@ The key columns in `all.csv` are:
 The file contains one row per object class per attempt. With `--attempts 5`, each class
 will have 5 rows, reflecting the stochastic variation across independent inference runs.
 
+When no baseline is available for comparison, the pipeline runner also produces
+`stats/aggregated_eval_summary.csv` — a condensed table with one row per class containing
+the mean of each metric across all attempts, plus an OVERALL row.
+
 Evaluation is described in the [Evaluation](evaluation.md) section of the documentation in more detail.
 
 ## Training from Scratch
