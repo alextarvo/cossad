@@ -86,11 +86,11 @@ loss:
   # If enabled, FA and WA loss weights will be initialized from fa_loss_weight and wa_loss_weight (see below);
   # they will be updated to maintain the equality of gradient magnitudes throughout the training
   # If disabled, FA and WA loss weights will be not changed during the training process.
-  use_grad_norm: False
+  use_grad_norm: True
   # An initial weight of the FA loss.
   fa_loss_weight: 1
   # An initial weight of the WA loss
-  wa_loss_weight: 0
+  wa_loss_weight: 1
   # Type of a loss function for WA tuples.
   # MS denotes Multi-Similarity loss; SupCon - supervised contrastive loss
   wa_loss_type: 'MS'
