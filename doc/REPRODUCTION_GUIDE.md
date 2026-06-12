@@ -1,14 +1,18 @@
 # COSSAD Reproduction Guide
 
 This guide provides instructions to reproduce the results reported in the ICPR'26 paper "The Good, the Bad, and the Template: Contrastive Anomaly Detection in 3D".
-If you encounter any technical issues with the instructions below, please contact Alexander Tarvo (alextarvo at Gmail) for assistance.
+If you encounter any technical issues with the instructions below, please contact Alexander Tarvo (alextarvo at Gmail, or alexta at uw dot edu) for assistance.
+
+Please note that training the full model on all the data splits can be very time-consuming (up to 36 hours). To speed up the reproduction, you can use either 
+pre-trained weights or train the model on the subset of data splits; you can specify the desired data splits using --splits argument of the run_train_eval_pipeline.py 
+script (see below).
 
 ## Quick Start (Using Pre-trained Weights)
 
 ### 1. Setup Environment
 
 You need a GPU 32 Gb VRAM to train the COSSAD with the default settings. We trained COSSAD on NVidia RTX5090 GPU, so we recommend Blackwell architecture
-for ultimate reproducibility. Inference is a CPU-heavy task due to the ICP registration algorithm, thus we recommend an Intel i7 or Core 7 CPU with 8 performance cores.
+for ultimate reproducibility. Inference is a CPU-heavy task due to the ICP registration algorithm, thus we recommend an Intel i7 or Core 7 CPU with 8 performance cores and 64 Gb RAM.
 
 We provided Docker environment for reproducibility. To build a Docker environment:
 
@@ -17,7 +21,7 @@ We provided Docker environment for reproducibility. To build a Docker environmen
 git clone --recurse-submodules https://github.com/alextarvo/cossad
 cd cossad
 
-# Build Docker image (cu124 recommended for most GPUs)
+# Build Docker image (cu124 recommended for older pre-Blackwell GPUs)
 ./docker/build.sh cu124
 ```
 
@@ -43,7 +47,8 @@ tar -xf template.tar
 tar -xf train.tar
 ```
 
-If your data is in a different location, update the volume mounts in `docker/docker-compose.yml`:
+By default, Doker will attempt to mount your the folders /mnt/data/cossad/data and /mnt/data/cossad/model_weights on your workstation filesystem to the /data and /weights
+volumes in the docker container.  If your data is in a different location, update the volume mounts in `docker/docker-compose.yml`:
 ```yaml
 volumes:
   - /your/data/path:/data          # Dataset (template/ and train/)
@@ -120,9 +125,8 @@ python scripts/run_train_eval_pipeline.py eval \
     --weights-run-id baseline --eval-dataset shapenet --attempts 5 --splits 1-12
 ```
 
-The `--attempts 5` flag runs inference 5 times per object class and aggregates the results. 
-The inference algorithm is inherently stochastic.
-Running multiple attempts provides mean and standard deviation
+The `--attempts 5` flag runs inference 5 times per object class, stores the results over all the run attempts, and aggregates them. 
+The inference algorithm is inherently stochastic. Thus running multiple attempts provides mean and standard deviation
 of the ROCAUC metrics, which is necessary to obtain the averaged accuracy values and
 assess statistical significance of the results.
 
