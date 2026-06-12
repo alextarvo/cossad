@@ -972,9 +972,9 @@ def main(cfg: DictConfig):
     try:
         for epoch in range(cfg.training.epochs):
             # Train
-            # train_metrics = trainer.train_epoch(train_all_pos_loader, train_neg_loader)
+            train_metrics = trainer.train_epoch(train_all_pos_loader, train_neg_loader)
             # train_metrics = trainer.train_epoch_fa(train_neg_loader)
-            train_metrics = trainer.train_epoch_wa(train_all_pos_loader, train_neg_loader)
+            #train_metrics = trainer.train_epoch_wa(train_all_pos_loader, train_neg_loader)
             # Validate
             val_metrics = trainer.validate(val_all_pos_loader, val_neg_loader)
 
