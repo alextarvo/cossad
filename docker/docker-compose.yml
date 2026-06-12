@@ -38,8 +38,8 @@
 # Shared configuration (YAML anchor)
 x-cossad-common: &cossad-common
   volumes:
-    - /mnt/data/cosarad/data:/data
-    - /mnt/data/cosarad/model_weights:/weights
+    - /mnt/data/cossad/data:/data
+    - /mnt/data/cossad/model_weights:/weights
     - ..:/app
   ports:
     - "5678:5678"
