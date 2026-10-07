@@ -90,14 +90,28 @@ class MultipleAttemptRegistration(MultipleAttemptRegistrationBase):
 class MultipleAttemptRegistrationEugenRotation(MultipleAttemptRegistration):
     def __init__(self, alg_factory: base_reg.RegistrationFactory, target_accuracy: float, max_attempts: float=8):
         super(MultipleAttemptRegistrationEugenRotation, self).__init__(alg_factory, target_accuracy, max_attempts)
-        Rx_pi = np.diag([1, -1, -1])
-        Ry_pi = np.diag([-1, 1, -1])
-        Rz_pi = np.diag([-1, -1, 1])
-        Rxy_pi = Rx_pi @ Ry_pi
-        Rxz_pi = Rx_pi @ Rz_pi
-        Ryz_pi = Ry_pi @ Rz_pi
-        Rxyz_pi = Rx_pi @ Ry_pi @ Rz_pi
-        self.rotations = [np.eye(3), Rx_pi, Ry_pi, Rz_pi, Rxy_pi, Rxz_pi, Ryz_pi, Rxyz_pi]
+        # Starting orientations, all proper rotations of the target's PCA frame onto itself.
+        #
+        # PCA fixes each axis only up to sign, so the first four cover that ambiguity and cover it
+        # completely: of the eight diagonal sign patterns only four have det = +1, and the other four
+        # are reflections that would mirror the object. Those four form the Klein four-group --
+        # identity and a half turn about each axis -- so any product of two of them is the third and
+        # there is no fifth to find.
+        #
+        # The last four handle the other ambiguity, which sign flips cannot: when two eigenvalues are
+        # close, PCA cannot order those two axes either. A quarter turn about the major axis covers
+        # an elongated object whose cross-section is near-circular; about the minor axis, a flat one
+        # whose two long axes are similar. Both shapes are common in MulSen.
+        #
+        # An earlier version listed eight entries but only four were distinct: every composite
+        # duplicated a single, because the Klein group is closed under multiplication.
+        Rx_pi = np.diag([1.0, -1.0, -1.0])
+        Ry_pi = np.diag([-1.0, 1.0, -1.0])
+        Rz_pi = np.diag([-1.0, -1.0, 1.0])
+        Rx_quarter = np.array([[1.0, 0.0, 0.0], [0.0, 0.0, -1.0], [0.0, 1.0, 0.0]])
+        Rz_quarter = np.array([[0.0, -1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]])
+        self.rotations = [np.eye(3), Rx_pi, Ry_pi, Rz_pi,
+                          Rx_quarter, Rx_quarter.T, Rz_quarter, Rz_quarter.T]
         # Limit the number of attempts to the number requested
         self.rotations  = self.rotations[:self.max_attempts]
         self.best_rotation = None
@@ -116,8 +130,18 @@ class MultipleAttemptRegistrationEugenRotation(MultipleAttemptRegistration):
             reg = self.alg_factory()
             assert np.allclose(reg.get_target().mean(axis=0), 0, atol=1e-5)
             V = self.pca_axes(reg.get_target())
+            # Rotation about one of the target's own PCA axes, expressed in the original frame. V's
+            # columns are the axes, so V.T @ p gives p's coordinates in the PCA basis, `rotation`
+            # turns them there, and V brings them back: p' = full_rotation @ p. That is the column
+            # convention, which is what get_transform() records and what every consumer of the
+            # resulting 4x4 applies.
             full_rotation = V @ rotation @ V.T
-            reg.set_target(reg.get_target() @ full_rotation)
+            # Transposed here, and only here, because the points are rows: `points @ M` is the row
+            # form of `M.T @ p`. Without the transpose the rotation applied to the cloud would be the
+            # inverse of the one get_transform() reports, and the stored transform would not
+            # reproduce the registered cloud. It makes no difference for the four half turns above,
+            # which are symmetric, but it does for the four quarter turns.
+            reg.set_target(reg.get_target() @ full_rotation.T)
             reg.compute_registration_transform()
             if self.best_reg_accuracy is None:
                 self.save_best_values(reg)
